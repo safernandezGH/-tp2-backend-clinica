@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "Backend Clinica - Semana 2",
+    "description": "CRUD de sedes, especialidades, coberturas y agenda médica",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000" },
+    { "key": "token_admin", "value": "" },
+    { "key": "token_medico", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Login admin (guarda token_admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const data = pm.response.json();",
+              "if (data && data.datos && data.datos.token) {",
+              "  pm.collectionVariables.set('token_admin', data.datos.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{base_url}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dni\": \"18222333\",\n  \"password\": \"admin123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "1. Crear sede (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+        ],
+        "url": "{{base_url}}/sedes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Sede Oeste\",\n  \"direccion\": \"Belgrano 900\",\n  \"telefono\": \"3424000003\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Listar sedes (admin)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+        "url": "{{base_url}}/sedes"
+      }
+    },
+    {
+      "name": "3. Listar sedes sin token (debe dar 401)",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/sedes"
+      }
+    },
+    {
+      "name": "4. Actualizar sede (admin)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+        ],
+        "url": "{{base_url}}/sedes/1",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Sede Centro Actualizada\",\n  \"direccion\": \"San Martín 123\",\n  \"telefono\": \"3424000001\"\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Eliminar sede con dependencias (debe dar 409)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+        "url": "{{base_url}}/sedes/1"
+      }
+    },
+    {
+      "name": "6. Crear especialidad (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+        ],
+        "url": "{{base_url}}/especialidades",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"descripcion\": \"Cardiologia\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Listar especialidades (admin)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+        "url": "{{base_url}}/especialidades"
+      }
+    },
+    {
+      "name": "8. Eliminar especialidad con dependencias (debe dar 409)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+        "url": "{{base_url}}/especialidades/1"
+      }
+    },
+    {
+      "name": "9. Crear cobertura (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+        ],
+        "url": "{{base_url}}/coberturas",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"OSDE\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. Listar coberturas publicas (sin token)",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/coberturas/publicas"
+      }
+    },
+    {
+      "name": "11. Login medico (guarda token_medico)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const data = pm.response.json();",
+              "if (data && data.datos && data.datos.token) {",
+              "  pm.collectionVariables.set('token_medico', data.datos.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{base_url}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dni\": \"20111222\",\n  \"password\": \"medico123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "12. Crear agenda propia (medico)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+        ],
+        "url": "{{base_url}}/agenda",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-01\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "13. Crear agenda para OTRO medico (medico, debe dar 403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+        ],
+        "url": "{{base_url}}/agenda",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-01\",\n  \"id_medico\": 99,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "14. Listar mi agenda (medico, solo la propia)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+        "url": "{{base_url}}/agenda"
+      }
+    },
+    {
+      "name": "15. Listar agenda filtrada por fecha y sede",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+        "url": "{{base_url}}/agenda?fecha=2026-09-01&id_sede=1"
+      }
+    }
+  ]
+}
