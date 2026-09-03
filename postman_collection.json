@@ -1,0 +1,697 @@
+{
+  "info": {
+    "name": "Backend Clínica - Entregas 1 a 4",
+    "description": "Colección ordenada por entregas: entrega 1 (auth), entrega 2 (sedes/especialidades/coberturas/agenda), entrega 3 (turnos/historial/notificaciones) y entrega 4 (usuarios/auditoría/reportes).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "token_admin", "value": "" },
+    { "key": "token_medico", "value": "" },
+    { "key": "token_paciente", "value": "" },
+    { "key": "token_operador", "value": "" },
+    { "key": "admin_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Entrega 1 - Auth",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "Listar coberturas",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/coberturas"
+          }
+        },
+        {
+          "name": "Registro de paciente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/registro",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nicolas\",\n  \"apellido\": \"Gomez\",\n  \"dni\": \"30251255\",\n  \"email\": \"nicolas.test@test.com\",\n  \"password\": \"123456\",\n  \"fecha_nacimiento\": \"2000-03-14\",\n  \"id_cobertura\": 1,\n  \"telefono\": \"3424555555\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.token) {",
+                  "  pm.collectionVariables.set('token', data.datos.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"30251255\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Perfil (protegido)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/auth/perfil"
+          }
+        },
+        {
+          "name": "Perfil sin token (debe dar 401)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/perfil"
+          }
+        },
+        {
+          "name": "Admin test (debe dar 403 si no sos admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/auth/admin-test"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entrega 2 - Sedes, Especialidades, Coberturas y Agenda",
+      "item": [
+        {
+          "name": "0. Login admin (guarda token_admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.token) {",
+                  "  pm.collectionVariables.set('token_admin', data.datos.token);",
+                  "  pm.collectionVariables.set('admin_token', data.datos.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"18222333\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1. Crear sede (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": "{{base_url}}/sedes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sede Oeste\",\n  \"direccion\": \"Belgrano 900\",\n  \"telefono\": \"3424000003\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Listar sedes (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": "{{base_url}}/sedes"
+          }
+        },
+        {
+          "name": "3. Listar sedes sin token (debe dar 401)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/sedes"
+          }
+        },
+        {
+          "name": "4. Actualizar sede (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": "{{base_url}}/sedes/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sede Centro Actualizada\",\n  \"direccion\": \"San Martín 123\",\n  \"telefono\": \"3424000001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Eliminar sede con dependencias (debe dar 409)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": "{{base_url}}/sedes/1"
+          }
+        },
+        {
+          "name": "6. Crear especialidad (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": "{{base_url}}/especialidades",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Cardiologia\"\n}"
+            }
+          }
+        },
+        {
+          "name": "7. Listar especialidades (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": "{{base_url}}/especialidades"
+          }
+        },
+        {
+          "name": "8. Eliminar especialidad con dependencias (debe dar 409)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": "{{base_url}}/especialidades/1"
+          }
+        },
+        {
+          "name": "9. Crear cobertura (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": "{{base_url}}/coberturas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"OSDE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "10. Listar coberturas publicas (sin token)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/coberturas/publicas"
+          }
+        },
+        {
+          "name": "11. Login medico (guarda token_medico)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.token) {",
+                  "  pm.collectionVariables.set('token_medico', data.datos.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"20111222\",\n  \"password\": \"medico123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "12. Crear agenda propia (medico)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "url": "{{base_url}}/agenda",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-01\",\n  \"id_medico\": 3,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "13. Crear agenda para OTRO medico (medico, debe dar 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "url": "{{base_url}}/agenda",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora_entrada\": \"09:00\",\n  \"hora_salida\": \"13:00\",\n  \"fecha\": \"2026-09-01\",\n  \"id_medico\": 99,\n  \"id_especialidad\": 1,\n  \"id_sede\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "14. Listar mi agenda (medico, solo la propia)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": "{{base_url}}/agenda"
+          }
+        },
+        {
+          "name": "15. Listar agenda filtrada por fecha y sede",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": "{{base_url}}/agenda?fecha=2026-09-01&id_sede=1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entrega 3 - Turnos, Historial y Notificaciones",
+      "item": [
+        {
+          "name": "0. Login paciente (guarda token_paciente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.token) {",
+                  "  pm.collectionVariables.set('token_paciente', data.datos.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"30251255\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1. Login medico (guarda token_medico)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.token) {",
+                  "  pm.collectionVariables.set('token_medico', data.datos.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"20111222\",\n  \"password\": \"medico123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Login operador (guarda token_operador)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.token) {",
+                  "  pm.collectionVariables.set('token_operador', data.datos.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"15200548\",\n  \"password\": \"operador123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Alta de Turno (fuera de rango - debe fallar 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "url": "{{base_url}}/turnos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": 2,\n  \"fecha\": \"2025-10-20\",\n  \"hora\": \"14:00\",\n  \"nota\": \"Consulta fuera del rango de las 15hs\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Alta de Turno (superpuesto - debe fallar 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "url": "{{base_url}}/turnos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": 2,\n  \"fecha\": \"2025-10-27\",\n  \"hora\": \"15:30\",\n  \"nota\": \"Pisa el turno que ya existe de Franco\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Alta de Turno (exitoso - 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
+            ],
+            "url": "{{base_url}}/turnos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agenda\": 2,\n  \"fecha\": \"2025-10-20\",\n  \"hora\": \"16:00\",\n  \"nota\": \"Consulta de rutina\"\n}"
+            }
+          }
+        },
+        {
+          "name": "6. Cancelar turno (paciente - 200)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": "{{base_url}}/turnos/3/cancelar"
+          }
+        },
+        {
+          "name": "7. Atender turno (medico - 200)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": "{{base_url}}/turnos/2/atender"
+          }
+        },
+        {
+          "name": "8. Mis turnos (paciente - 200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": "{{base_url}}/turnos/mis-turnos"
+          }
+        },
+        {
+          "name": "9. Turnos por medico (medico - 200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "url": "{{base_url}}/turnos/por-medico?fecha=2025-10-20"
+          }
+        },
+        {
+          "name": "10. Turnos por sede (operador - 200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_operador}}" }],
+            "url": "{{base_url}}/turnos/por-sede?fecha=2025-10-20"
+          }
+        },
+        {
+          "name": "11. Registrar historial clinico (medico - 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "url": "{{base_url}}/historial",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_turno\": 2,\n  \"diagnostico\": \"Gripe estacional\",\n  \"tratamiento\": \"Descanso e hidratación\",\n  \"observaciones\": \"Control en 7 días\"\n}"
+            }
+          }
+        },
+        {
+          "name": "12. Consultar historial clinico (paciente - 200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": "{{base_url}}/historial"
+          }
+        },
+        {
+          "name": "13. Listar notificaciones (paciente - 200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": "{{base_url}}/notificaciones"
+          }
+        },
+        {
+          "name": "14. Marcar notificacion como leida (paciente - 200)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
+            "url": "{{base_url}}/notificaciones/3/leer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entrega 4 - Usuarios, Auditoría y Reportes",
+      "item": [
+        {
+          "name": "Login Admin (guarda admin_token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.datos && data.datos.token) {",
+                  "  pm.collectionVariables.set('admin_token', data.datos.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"18222333\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1. Crear Usuario (Médico/Operador/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/usuarios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Mateo\",\n  \"apellido\": \"Ruiz\",\n  \"dni\": \"88888888\",\n  \"email\": \"mateo.ruiz@clinica.com\",\n  \"password\": \"password123\",\n  \"fecha_nacimiento\": \"1985-03-20\",\n  \"rol\": \"medico\",\n  \"id_sede\": 1,\n  \"telefono\": \"3424111111\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Listar Todos los Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/usuarios"
+          }
+        },
+        {
+          "name": "3. Obtener Usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/usuarios/3"
+          }
+        },
+        {
+          "name": "4. Actualizar Usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "url": "{{base_url}}/usuarios/3",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana María\",\n  \"apellido\": \"Lopez Actualizado\",\n  \"email\": \"alopezactualizado@clinica.com\",\n  \"rol\": \"medico\",\n  \"id_sede\": 1,\n  \"telefono\": \"3424222222\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Eliminar Usuario",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/usuarios/3"
+          }
+        },
+        {
+          "name": "AUDITORÍA - Obtener Logs (sin filtros)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/auditoria"
+          }
+        },
+        {
+          "name": "AUDITORÍA - Filtrar por Usuario",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/auditoria?idUsuario=4"
+          }
+        },
+        {
+          "name": "AUDITORÍA - Filtrar por Entidad",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/auditoria?entidad=sede"
+          }
+        },
+        {
+          "name": "AUDITORÍA - Filtrar por Rango de Fechas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/auditoria?fechaInicio=2025-01-01&fechaFin=2025-12-31"
+          }
+        },
+        {
+          "name": "AUDITORÍA - Filtrar Combinados",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/auditoria?idUsuario=4&entidad=usuario&fechaInicio=2025-10-01"
+          }
+        },
+        {
+          "name": "REPORTES - Turnos por Especialidad",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/turnos-por-especialidad"
+          }
+        },
+        {
+          "name": "REPORTES - Turnos por Especialidad (con fechas)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/turnos-por-especialidad?fechaInicio=2025-01-01&fechaFin=2025-12-31"
+          }
+        },
+        {
+          "name": "REPORTES - Turnos por Sede",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/turnos-por-sede"
+          }
+        },
+        {
+          "name": "REPORTES - Turnos por Sede (con fechas)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/turnos-por-sede?fechaInicio=2025-10-01&fechaFin=2025-10-31"
+          }
+        },
+        {
+          "name": "REPORTES - Ranking de Médicos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/ranking-medicos"
+          }
+        },
+        {
+          "name": "REPORTES - Ranking de Médicos (con fechas)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/ranking-medicos?fechaInicio=2025-01-01&fechaFin=2025-12-31"
+          }
+        },
+        {
+          "name": "REPORTES - Tasa de Cancelación",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/tasa-cancelacion"
+          }
+        },
+        {
+          "name": "REPORTES - Tasa de Cancelación (con fechas)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/reportes/tasa-cancelacion?fechaInicio=2025-10-01&fechaFin=2025-10-31"
+          }
+        }
+      ]
+    }
+  ]
+}
